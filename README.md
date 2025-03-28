@@ -106,7 +106,8 @@ After training, you will find:
   The encoder and diffusion model weights are saved as `final_model.pth` in the specified output directory. Upload these weight files to Google Drive and share the link as required.
 
 - **Training Loss Curve:**  
-  A plot (`training_loss.png`) showing the average training loss per epoch is saved in the output directory. This plot can be used to evaluate training progress.
+  A plot (![training_loss](https://github.com/user-attachments/assets/721cd67b-7701-4c10-852a-6b31e2020ba3)
+) showing the average training loss per epoch is saved in the output directory. This plot can be used to evaluate training progress.
 
 - **Sample Images:**  
   Generated samples from the diffusion model are saved periodically (e.g., `![samples_epoch_5 (1)](https://github.com/user-attachments/assets/51f59a92-787c-4df0-ab87-9a491109fb95){: width="400px"}
@@ -114,10 +115,6 @@ After training, you will find:
   ) in the output directory.
 
 ## Additional Information
-
-- **Report:**  
-  A detailed report explaining the algorithm, its components (encoder, diffusion process, conditioning), and the training procedure is included in the repository as `REPORT.md`.
-
 - **Reproducibility:**  
   For reproducibility, please ensure you have installed the required dependencies using the uv package manager as described above.
 

@@ -7,7 +7,8 @@ This project implements a conditional diffusion model for generating human face 
 
 The following sample image was generated after just 5 epochs of training:
 
-![samples_epoch_5 (1)](https://github.com/user-attachments/assets/51f59a92-787c-4df0-ab87-9a491109fb95)
+![samples_epoch_5 (1)](https://github.com/user-attachments/assets/51f59a92-787c-4df0-ab87-9a491109fb95){: width="400px"}
+
 
 
 **Note:** The image may still appear noisy or blurry because the diffusion model has not yet converged. **Increasing the number of training epochs** (e.g., 50, 100, or more) and/or tuning hyperparameters (like the learning rate or U-Net architecture) can significantly improve the quality of generated images. Diffusion models often require extensive training time to capture detailed structures in the data.
@@ -108,7 +109,8 @@ After training, you will find:
   A plot (`training_loss.png`) showing the average training loss per epoch is saved in the output directory. This plot can be used to evaluate training progress.
 
 - **Sample Images:**  
-  Generated samples from the diffusion model are saved periodically (e.g., `![samples_epoch_5 (1)](https://github.com/user-attachments/assets/4c0acfb8-1c48-4394-823c-9c7fcc08c860)
+  Generated samples from the diffusion model are saved periodically (e.g., `![samples_epoch_5 (1)](https://github.com/user-attachments/assets/51f59a92-787c-4df0-ab87-9a491109fb95){: width="400px"}
+`
   ) in the output directory.
 
 ## Additional Information

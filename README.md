@@ -1,74 +1,123 @@
-# Face Generation from Embeddings
+# Diffusion-Based Face Generation
 
-This project implements a conditional generative model that creates human face images from embeddings. The pipeline consists of two main components:
+This project implements a conditional diffusion model for generating human face images. The model uses a Vision Transformer (ViT) encoder (pretrained with DINOv2 weights) to condition a U-Net-based diffusion model that progressively denoises images. The code also logs training loss and saves a loss curve for performance tracking.
 
-1. **Fine-tuning a DINOv2 encoder** on a face dataset to create high-quality face embeddings
-2. **Training a conditional diffusion model** that generates face images from these embeddings
 
-## Implementation Details
+## Sample Image Note
 
-### Encoder Fine-tuning
+The following sample image was generated after just 5 epochs of training:
 
-We fine-tune a DINOv2 model (ViT-S/16) on our face dataset to create embeddings specifically optimized for face representation. Key implementation details:
+![samples_epoch_5 (1)](https://github.com/user-attachments/assets/51f59a92-787c-4df0-ab87-9a491109fb95)
 
-- Use contrastive learning to improve the quality of face embeddings
-- Freeze most of the model parameters and only train the last block to prevent overfitting and speed up training
-- Apply data augmentation (horizontal flips, color jitter) to enhance robustness
-- Implement a custom contrastive loss function to maximize embedding similarity for related faces
 
-### Generative Model
+**Note:** The image may still appear noisy or blurry because the diffusion model has not yet converged. **Increasing the number of training epochs** (e.g., 50, 100, or more) and/or tuning hyperparameters (like the learning rate or U-Net architecture) can significantly improve the quality of generated images. Diffusion models often require extensive training time to capture detailed structures in the data.
 
-We implement a conditional latent diffusion model for face generation. Key features:
 
-- U-Net architecture with self-attention layers for better image quality
-- Conditioning mechanism that effectively incorporates the DINOv2 embeddings
-- Time-step and condition embeddings to control the denoising process
-- Classifier-free guidance for improved generation quality
+## Table of Contents
 
-### Edge Cases and Design Decisions
+- [Overview](#overview)
+- [Environment Setup](#environment-setup)
+- [Installation Using uv Package Manager](#installation-using-uv-package-manager)
+- [Training the Model](#training-the-model)
+- [Model Outputs](#model-outputs)
+- [Additional Information](#additional-information)
 
-1. **Training Time Management**: We implement automatic checkpointing and early stopping to ensure the training completes within the 6-hour limit. Resources are allocated with approximately 1.5 hours for encoder fine-tuning and 4.5 hours for diffusion model training.
+## Overview
 
-2. **Batch Size Adaptation**: The code dynamically adjusts batch sizes based on available GPU memory to optimize training speed.
+- **Encoder:**  
+  A pretrained ViT model (using DINOv2 weights) is used to extract high-level embeddings from face images. The classification head is removed, and a projection layer is added to obtain fixed-dimension embeddings.
 
-3. **Embedding Caching**: To avoid redundant computations, embeddings are pre-computed and cached after the encoder fine-tuning.
+- **Diffusion Model:**  
+  A conditional U-Net takes as input the noisy images along with time and conditioning embeddings. A beta schedule is used to progressively add noise during training, and the model is trained to reverse this process.
 
-4. **Zero-shot Evaluation**: We implement a dedicated evaluation pipeline for testing the model's generalization capabilities on unseen face images.
+- **Training Metrics:**  
+  Training losses are logged per epoch. At the end of training, a loss curve is saved (e.g., `training_loss.png`) that can be used to monitor the model's performance.
 
-5. **Handling Unusual Faces**: The model is trained with diverse face images to handle variations in pose, expression, and lighting. During inference, classifier-free guidance helps generate plausible faces even from embeddings of unusual face images.
+## Environment Setup
 
-## Usage
+This project requires Python 3.8+ and the following libraries:
+- PyTorch
+- torchvision
+- numpy
+- matplotlib
+- tqdm
+- Pillow
 
-### Setup
+## Installation Using uv Package Manager
 
-```bash
-pip install -r requirements.txt
-```
+We recommend using the **uv package manager** to create an isolated environment and install dependencies. Follow these steps:
 
-### Running the Full Pipeline
+1. **Install uv (if not already installed):**
 
-```bash
-python run_pipeline.py --data_dir /path/to/face/dataset --output_dir ./output --test_dir /path/to/test/images
-```
+   Follow the instructions on the [uv package manager GitHub page](https://github.com/uvpm/uvpm). For example:
+   ```bash
+   pip install uvpm
+   ```
 
-### Fine-tuning the Encoder Only
+2. **Create a new environment:**
+   ```bash
+   uv create face-diffusion-env python=3.8
+   ```
 
-```bash
-python finetune_encoder.py --data_dir /path/to/face/dataset --output_dir ./encoder_output
-```
+3. **Activate the environment:**
+   ```bash
+   uv activate face-diffusion-env
+   ```
 
-### Training the Diffusion Model Only
+4. **Install required packages:**
+   ```bash
+   uv install torch torchvision numpy matplotlib tqdm Pillow
+   ```
 
-```bash
-python diffusion_generator.py --data_dir /path/to/face/dataset --embedding_model_path ./encoder_output/best_model.pth --output_dir ./diffusion_output
-```
+   Alternatively, if a `requirements.txt` is provided, you can install all dependencies with:
+   ```bash
+   uv install -r requirements.txt
+   ```
 
-### Zero-shot Evaluation
+## Training the Model
 
-```bash
-python diffusion_generator.py --data_dir /path/to/face/dataset --embedding_model_path ./encoder_output/best_model.pth --output_dir ./diffusion_output --test --test_dir /path/to/test/images --test_output_dir ./test_results
-```
+1. **Mount Google Drive (if using Colab):**  
+   Ensure your Google Drive is mounted so that the dataset and model checkpoints can be accessed:
+   ```python
+   from google.colab import drive
+   drive.mount('/content/drive')
+   ```
 
-## Results
+2. **Set the dataset path:**  
+   Update the `data_dir` variable in the training script to point to your face image dataset (e.g., `/content/drive/MyDrive/img_align_celeba`).
 
-The model achieves strong zero-shot generalization capabilities, accurately generating faces from unseen embeddings with high fidelity. Training converges within the 6-hour limit by optimizing both the encoder fine-tuning and diffusion model training phases.
+3. **Run the Training Script:**  
+   Execute the training script:
+   ```bash
+   python train_face_generation.py
+   ```
+   The script will:
+   - Load and preprocess images.
+   - Train the diffusion model for a set number of epochs.
+   - Log the training loss per epoch.
+   - Save intermediate sample images every few epochs.
+   - Save the final model weights in `final_model.pth` within the output directory.
+
+## Model Outputs
+
+After training, you will find:
+- **Model Weights:**  
+  The encoder and diffusion model weights are saved as `final_model.pth` in the specified output directory. Upload these weight files to Google Drive and share the link as required.
+
+- **Training Loss Curve:**  
+  A plot (`training_loss.png`) showing the average training loss per epoch is saved in the output directory. This plot can be used to evaluate training progress.
+
+- **Sample Images:**  
+  Generated samples from the diffusion model are saved periodically (e.g., `![samples_epoch_5 (1)](https://github.com/user-attachments/assets/4c0acfb8-1c48-4394-823c-9c7fcc08c860)
+  ) in the output directory.
+
+## Additional Information
+
+- **Report:**  
+  A detailed report explaining the algorithm, its components (encoder, diffusion process, conditioning), and the training procedure is included in the repository as `REPORT.md`.
+
+- **Reproducibility:**  
+  For reproducibility, please ensure you have installed the required dependencies using the uv package manager as described above.
+
+- **GPU Usage:**  
+  The model training script uses CUDA if available. Ensure that your environment is configured to use a GPU for faster training.
